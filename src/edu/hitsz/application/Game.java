@@ -131,6 +131,7 @@ public class Game extends JPanel {
 
     private void shootAction() {
         shootCounter++;
+        enemyShootCounter++;
         if (shootCounter >= shootCycle) {
             shootCounter = 0;
             //英雄机射击
