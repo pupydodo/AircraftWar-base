@@ -16,7 +16,7 @@ public class HeroAircraft extends AbstractAircraft {
 
     private static final HeroAircraft instance = new HeroAircraft(Main.WINDOW_WIDTH / 2,
             Main.WINDOW_HEIGHT - ImageManager.HERO_IMAGE.getHeight(),
-            0,0, 100);
+            0,0, 300);
     public HeroAircraft(int locationX, int locationY, int speedX, int speedY, int hp) {
         super(locationX, locationY, speedX, speedY, hp);
     }
