@@ -22,7 +22,7 @@ public class EliteEnemy extends AbstractAircraft{
         }
     }
     //每次射击发射子弹数量
-    private final int shootNum = 1;
+    private final int shootNum = 2;
 
     //子弹威力
     private final int power = 30;

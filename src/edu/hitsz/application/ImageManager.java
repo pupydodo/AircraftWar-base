@@ -36,10 +36,14 @@ public class ImageManager {
     public static BufferedImage ENEMY_BULLET_IMAGE;
     public static BufferedImage MOB_ENEMY_IMAGE;
     public static BufferedImage ELITE_ENEMY_IMAGE;
+    public static BufferedImage ELITE_PLUS_ENEMY_IMAGE;
+    public static BufferedImage ELITE_PRO_ENEMY_IMAGE;
     public static BufferedImage ELITE_BULLET_IMAGE;
     public static BufferedImage BLOOD_PROP_IMAGE;
     public static BufferedImage BULLET_PROP_IMAGE;
     public static BufferedImage BULLET_PLUS_PROP_IMAGE;
+    public static BufferedImage BOMB_PROP_IMAGE;
+    public static BufferedImage FREEZE_PROP_IMAGE;
 
     static {
         try {
@@ -51,20 +55,27 @@ public class ImageManager {
             HERO_BULLET_IMAGE = ImageIO.read(new FileInputStream("src/images/bullet_hero.png"));
             ENEMY_BULLET_IMAGE = ImageIO.read(new FileInputStream("src/images/bullet_enemy.png"));
             ELITE_ENEMY_IMAGE =  ImageIO.read(new FileInputStream("src/images/elite.png"));
+            ELITE_PLUS_ENEMY_IMAGE =  ImageIO.read(new FileInputStream("src/images/elitePlus.png"));
+            ELITE_PRO_ENEMY_IMAGE =  ImageIO.read(new FileInputStream("src/images/elitePro.png"));
             BLOOD_PROP_IMAGE = ImageIO.read(new FileInputStream("src/images/prop_blood.png"));
             BULLET_PROP_IMAGE = ImageIO.read(new FileInputStream("src/images/prop_bullet.png"));
             BULLET_PLUS_PROP_IMAGE = ImageIO.read(new FileInputStream("src/images/prop_bulletPlus.png"));
+            BOMB_PROP_IMAGE = ImageIO.read(new FileInputStream("src/images/prop_bomb.png"));
+            FREEZE_PROP_IMAGE = ImageIO.read(new FileInputStream("src/images/prop_freeze.png"));
 //            ELITE_BULLET_IMAGE =  ImageIO.read(new FileInputStream("src/images/elite_enemy.png"));
 
             CLASSNAME_IMAGE_MAP.put(HeroAircraft.class.getName(), HERO_IMAGE);
             CLASSNAME_IMAGE_MAP.put(MobEnemy.class.getName(), MOB_ENEMY_IMAGE);
             CLASSNAME_IMAGE_MAP.put(EliteEnemy.class.getName(), ELITE_ENEMY_IMAGE);
+            CLASSNAME_IMAGE_MAP.put(edu.hitsz.aircraft.ElitePlusEnemy.class.getName(), ELITE_PLUS_ENEMY_IMAGE);
+            CLASSNAME_IMAGE_MAP.put(edu.hitsz.aircraft.EliteProEnemy.class.getName(), ELITE_PRO_ENEMY_IMAGE);
             CLASSNAME_IMAGE_MAP.put(HeroBullet.class.getName(), HERO_BULLET_IMAGE);
             CLASSNAME_IMAGE_MAP.put(EnemyBullet.class.getName(), ENEMY_BULLET_IMAGE);
             CLASSNAME_IMAGE_MAP.put(BloodProp.class.getName(), BLOOD_PROP_IMAGE);
             CLASSNAME_IMAGE_MAP.put(BulletProp.class.getName(), BULLET_PROP_IMAGE);
             CLASSNAME_IMAGE_MAP.put(BulletPlusProp.class.getName(), BULLET_PLUS_PROP_IMAGE);
-
+            CLASSNAME_IMAGE_MAP.put(edu.hitsz.Props.BombProp.class.getName(), BOMB_PROP_IMAGE);
+            CLASSNAME_IMAGE_MAP.put(edu.hitsz.Props.FreezeProp.class.getName(), FREEZE_PROP_IMAGE);
 
         } catch (IOException e) {
             e.printStackTrace();

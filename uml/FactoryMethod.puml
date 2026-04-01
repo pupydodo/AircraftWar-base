@@ -1,0 +1,51 @@
+@startuml
+interface EnemyFactory {
+    +createEnemy(): AbstractAircraft
+}
+
+class MobEnemyFactory {
+    +createEnemy(): AbstractAircraft
+}
+
+class EliteEnemyFactory {
+    +createEnemy(): AbstractAircraft
+}
+
+class ElitePlusEnemyFactory {
+    +createEnemy(): AbstractAircraft
+}
+
+class EliteProEnemyFactory {
+    +createEnemy(): AbstractAircraft
+}
+
+abstract class AbstractAircraft {
+}
+
+class MobEnemy {
+}
+
+class EliteEnemy {
+}
+
+class ElitePlusEnemy {
+}
+
+class EliteProEnemy {
+}
+
+EnemyFactory <|.. MobEnemyFactory
+EnemyFactory <|.. EliteEnemyFactory
+EnemyFactory <|.. ElitePlusEnemyFactory
+EnemyFactory <|.. EliteProEnemyFactory
+
+AbstractAircraft <|-- MobEnemy
+AbstractAircraft <|-- EliteEnemy
+AbstractAircraft <|-- ElitePlusEnemy
+AbstractAircraft <|-- EliteProEnemy
+
+MobEnemyFactory ..> MobEnemy
+EliteEnemyFactory ..> EliteEnemy
+ElitePlusEnemyFactory ..> ElitePlusEnemy
+EliteProEnemyFactory ..> EliteProEnemy
+@enduml

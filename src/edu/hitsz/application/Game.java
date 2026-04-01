@@ -1,9 +1,6 @@
 package edu.hitsz.application;
 
 import edu.hitsz.Props.AbstractProp;
-import edu.hitsz.Props.BloodProp;
-import edu.hitsz.Props.BulletPlusProp;
-import edu.hitsz.Props.BulletProp;
 import edu.hitsz.aircraft.*;
 import edu.hitsz.bullet.BaseBullet;
 import edu.hitsz.basic.AbstractFlyingObject;
@@ -15,6 +12,13 @@ import java.util.*;
 import java.util.List;
 import java.util.Timer;
 import java.util.concurrent.*;
+
+import edu.hitsz.aircraft.EnemyFactory;
+import edu.hitsz.aircraft.MobEnemyFactory;
+import edu.hitsz.aircraft.EliteEnemyFactory;
+import edu.hitsz.aircraft.ElitePlusEnemyFactory;
+import edu.hitsz.aircraft.EliteProEnemyFactory;
+import edu.hitsz.Props.SimplePropFactory;
 
 /**
  * 游戏主面板，游戏启动
@@ -38,6 +42,11 @@ public class Game extends JPanel {
     //屏幕中出现的敌机最大数量
     private final int enemyMaxNumber = 5;
 
+    private final EnemyFactory mobFactory = new MobEnemyFactory();
+    private final EnemyFactory eliteFactory = new EliteEnemyFactory();
+    private final EnemyFactory elitePlusFactory = new ElitePlusEnemyFactory();
+    private final EnemyFactory eliteProFactory = new EliteProEnemyFactory();
+
     //敌机生成周期
     protected double enemySpawnCycle  =  20;
     private int enemySpawnCounter = 0;
@@ -55,8 +64,6 @@ public class Game extends JPanel {
     private boolean gameOverFlag = false;
 
     private static final double ELITE_PROP_DROP_RATE = 0.3;
-    private static final int PROP_SPEED_Y = 5;
-    private static final int BLOOD_PROP_HEAL_HP = 20;
     private static final int HERO_COLLISION_DAMAGE = 40;
 
     public Game() {
@@ -91,27 +98,18 @@ public class Game extends JPanel {
                 enemySpawnCounter++;
                 if (enemySpawnCounter >=enemySpawnCycle) {
                     enemySpawnCounter = 0;
-                    // 产生普通敌机
+                    // 产生敌机
                     if (enemyAircrafts.size() < enemyMaxNumber) {
                         double rand_enemy = Math.random();
-                        if(rand_enemy < 0.8){
-                            enemyAircrafts.add(new MobEnemy(
-                                    (int) (Math.random() * (Main.WINDOW_WIDTH - ImageManager.MOB_ENEMY_IMAGE.getWidth())),
-                                    (int) (Math.random() * Main.WINDOW_HEIGHT * 0.05),
-                                    0,
-                                    10,
-                                    30
-                            ));
-                        }else{
-                            enemyAircrafts.add(new EliteEnemy(
-                                    (int) (Math.random() * (Main.WINDOW_WIDTH - ImageManager.MOB_ENEMY_IMAGE.getWidth())),
-                                    (int) (Math.random() * Main.WINDOW_HEIGHT * 0.05),
-                                    0,
-                                    10,
-                                    30
-                            ));
+                        if (rand_enemy < 0.4) {
+                            enemyAircrafts.add(mobFactory.createEnemy());
+                        } else if (rand_enemy < 0.7) {
+                            enemyAircrafts.add(eliteFactory.createEnemy());
+                        } else if (rand_enemy < 0.9) {
+                            enemyAircrafts.add(elitePlusFactory.createEnemy());
+                        } else {
+                            enemyAircrafts.add(eliteProFactory.createEnemy());
                         }
-
                     }
                 }
 
@@ -154,7 +152,7 @@ public class Game extends JPanel {
         if(enemyShootCounter >= enemy_shoot_Cycle){
             enemyShootCounter = 0;
             for(AbstractAircraft enemyAircraft: enemyAircrafts){
-                if(enemyAircraft instanceof EliteEnemy) {
+                if (isEliteEnemy(enemyAircraft)) {
                     enemyBullets.addAll(enemyAircraft.shoot());
                 }
             }
@@ -328,12 +326,34 @@ public class Game extends JPanel {
         int locationX = enemyAircraft.getLocationX();
         int locationY = enemyAircraft.getLocationY();
         double randPropType = Math.random();
-        if (randPropType < 1.0 / 3) {
-            props.add(new BloodProp(locationX, locationY, 0, PROP_SPEED_Y, BLOOD_PROP_HEAL_HP));
-        } else if (randPropType < 2.0 / 3) {
-            props.add(new BulletProp(locationX, locationY, 0, PROP_SPEED_Y));
+        AbstractProp prop;
+        
+        if (enemyAircraft instanceof EliteEnemy) {
+            if (randPropType < 0.25) {
+                prop = SimplePropFactory.createProp("Blood", locationX, locationY);
+            } else if (randPropType < 0.5) {
+                prop = SimplePropFactory.createProp("Bullet", locationX, locationY);
+            } else if (randPropType < 0.75) {
+                prop = SimplePropFactory.createProp("BulletPlus", locationX, locationY);
+            } else {
+                prop = SimplePropFactory.createProp("Bomb", locationX, locationY);
+            }
         } else {
-            props.add(new BulletPlusProp(locationX, locationY, 0, PROP_SPEED_Y));
+            if (randPropType < 0.2) {
+                prop = SimplePropFactory.createProp("Blood", locationX, locationY);
+            } else if (randPropType < 0.4) {
+                prop = SimplePropFactory.createProp("Bullet", locationX, locationY);
+            } else if (randPropType < 0.6) {
+                prop = SimplePropFactory.createProp("BulletPlus", locationX, locationY);
+            } else if (randPropType < 0.8) {
+                prop = SimplePropFactory.createProp("Bomb", locationX, locationY);
+            } else {
+                prop = SimplePropFactory.createProp("Freeze", locationX, locationY);
+            }
+        }
+        
+        if (prop != null) {
+            props.add(prop);
         }
     }
 

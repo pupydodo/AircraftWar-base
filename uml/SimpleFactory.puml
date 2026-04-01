@@ -1,0 +1,35 @@
+@startuml
+class SimplePropFactory {
+    +createProp(propType: String, x: int, y: int): AbstractProp
+}
+
+abstract class AbstractProp {
+}
+
+class BloodProp {
+}
+
+class BulletProp {
+}
+
+class BulletPlusProp {
+}
+
+class BombProp {
+}
+
+class FreezeProp {
+}
+
+AbstractProp <|-- BloodProp
+AbstractProp <|-- BulletProp
+AbstractProp <|-- BulletPlusProp
+AbstractProp <|-- BombProp
+AbstractProp <|-- FreezeProp
+
+SimplePropFactory ..> BloodProp
+SimplePropFactory ..> BulletProp
+SimplePropFactory ..> BulletPlusProp
+SimplePropFactory ..> BombProp
+SimplePropFactory ..> FreezeProp
+@enduml
