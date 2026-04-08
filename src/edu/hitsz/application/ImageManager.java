@@ -44,6 +44,7 @@ public class ImageManager {
     public static BufferedImage BULLET_PLUS_PROP_IMAGE;
     public static BufferedImage BOMB_PROP_IMAGE;
     public static BufferedImage FREEZE_PROP_IMAGE;
+    public static BufferedImage BOSS_ENEMY_IMAGE;
 
     static {
         try {
@@ -62,6 +63,7 @@ public class ImageManager {
             BULLET_PLUS_PROP_IMAGE = ImageIO.read(new FileInputStream("src/images/prop_bulletPlus.png"));
             BOMB_PROP_IMAGE = ImageIO.read(new FileInputStream("src/images/prop_bomb.png"));
             FREEZE_PROP_IMAGE = ImageIO.read(new FileInputStream("src/images/prop_freeze.png"));
+            BOSS_ENEMY_IMAGE = ImageIO.read(new FileInputStream("src/images/boss.png"));
 //            ELITE_BULLET_IMAGE =  ImageIO.read(new FileInputStream("src/images/elite_enemy.png"));
 
             CLASSNAME_IMAGE_MAP.put(HeroAircraft.class.getName(), HERO_IMAGE);
@@ -76,6 +78,7 @@ public class ImageManager {
             CLASSNAME_IMAGE_MAP.put(BulletPlusProp.class.getName(), BULLET_PLUS_PROP_IMAGE);
             CLASSNAME_IMAGE_MAP.put(edu.hitsz.Props.BombProp.class.getName(), BOMB_PROP_IMAGE);
             CLASSNAME_IMAGE_MAP.put(edu.hitsz.Props.FreezeProp.class.getName(), FREEZE_PROP_IMAGE);
+            CLASSNAME_IMAGE_MAP.put(edu.hitsz.aircraft.BossEnemy.class.getName(), BOSS_ENEMY_IMAGE);
 
         } catch (IOException e) {
             e.printStackTrace();

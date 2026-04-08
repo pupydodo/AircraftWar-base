@@ -2,6 +2,7 @@ package edu.hitsz.application;
 
 import edu.hitsz.Props.AbstractProp;
 import edu.hitsz.aircraft.*;
+import edu.hitsz.application.HeroController;
 import edu.hitsz.bullet.BaseBullet;
 import edu.hitsz.basic.AbstractFlyingObject;
 
@@ -46,10 +47,15 @@ public class Game extends JPanel {
     private final EnemyFactory eliteFactory = new EliteEnemyFactory();
     private final EnemyFactory elitePlusFactory = new ElitePlusEnemyFactory();
     private final EnemyFactory eliteProFactory = new EliteProEnemyFactory();
+    private final EnemyFactory bossFactory = new BossEnemyFactory();
 
     //敌机生成周期
-    protected double enemySpawnCycle  =  20;
+    protected double enemySpawnCycle = 20;
     private int enemySpawnCounter = 0;
+
+    // Boss机控制
+    private boolean bossExists = false;
+    private int scoreThreshold = 0;
 
     //英雄机和敌机射击周期
     protected double shootCycle = 5;
@@ -100,15 +106,21 @@ public class Game extends JPanel {
                     enemySpawnCounter = 0;
                     // 产生敌机
                     if (enemyAircrafts.size() < enemyMaxNumber) {
-                        double rand_enemy = Math.random();
-                        if (rand_enemy < 0.4) {
-                            enemyAircrafts.add(mobFactory.createEnemy());
-                        } else if (rand_enemy < 0.7) {
-                            enemyAircrafts.add(eliteFactory.createEnemy());
-                        } else if (rand_enemy < 0.9) {
-                            enemyAircrafts.add(elitePlusFactory.createEnemy());
+                        if (score >= scoreThreshold + 500 && !bossExists) {
+                            bossExists = true;
+                            scoreThreshold += 500;
+                            enemyAircrafts.add(bossFactory.createEnemy());
                         } else {
-                            enemyAircrafts.add(eliteProFactory.createEnemy());
+                            double rand_enemy = Math.random();
+                            if (rand_enemy < 0.4) {
+                                enemyAircrafts.add(mobFactory.createEnemy());
+                            } else if (rand_enemy < 0.7) {
+                                enemyAircrafts.add(eliteFactory.createEnemy());
+                            } else if (rand_enemy < 0.9) {
+                                enemyAircrafts.add(elitePlusFactory.createEnemy());
+                            } else {
+                                enemyAircrafts.add(eliteProFactory.createEnemy());
+                            }
                         }
                     }
                 }
@@ -189,6 +201,16 @@ public class Game extends JPanel {
      */
     private void crashCheckAction() {
         // TODO 敌机子弹攻击英雄机
+        for (BaseBullet bullet : enemyBullets) {
+            if (bullet.notValid()) {
+                continue;
+            }
+            if (heroAircraft.crash(bullet)) {
+                // 英雄机损失一定生命值
+                heroAircraft.decreaseHp(bullet.getPower());
+                bullet.vanish();
+            }
+        }
 
         // 英雄子弹攻击敌机
         for (BaseBullet bullet : heroBullets) {
@@ -315,19 +337,47 @@ public class Game extends JPanel {
         g.drawString("LIFE: " + this.heroAircraft.getHp(), x, y);
     }
 
+    private boolean isEliteEnemy(AbstractAircraft enemyAircraft) {
+        return enemyAircraft instanceof EliteEnemy
+                || enemyAircraft instanceof ElitePlusEnemy
+                || enemyAircraft instanceof EliteProEnemy
+                || enemyAircraft instanceof BossEnemy;
+    }
+
     private void maybeGenerateProp(AbstractAircraft enemyAircraft) {
         if (!isEliteEnemy(enemyAircraft)) {
-            return;
-        }
-        if (Math.random() >= ELITE_PROP_DROP_RATE) {
             return;
         }
 
         int locationX = enemyAircraft.getLocationX();
         int locationY = enemyAircraft.getLocationY();
+
+        if (enemyAircraft instanceof BossEnemy) {
+            bossExists = false;
+            for (int i = 0; i < 3; i++) {
+                double randPropType = Math.random();
+                AbstractProp prop;
+                if (randPropType < 0.33) {
+                    prop = SimplePropFactory.createProp("Blood", locationX + (i-1)*30, locationY);
+                } else if (randPropType < 0.66) {
+                    prop = SimplePropFactory.createProp("Bullet", locationX + (i-1)*30, locationY);
+                } else {
+                    prop = SimplePropFactory.createProp("BulletPlus", locationX + (i-1)*30, locationY);
+                }
+                if (prop != null) {
+                    props.add(prop);
+                }
+            }
+            return;
+        }
+
+        if (Math.random() >= ELITE_PROP_DROP_RATE) {
+            return;
+        }
+
         double randPropType = Math.random();
         AbstractProp prop;
-        
+
         if (enemyAircraft instanceof EliteEnemy) {
             if (randPropType < 0.25) {
                 prop = SimplePropFactory.createProp("Blood", locationX, locationY);
@@ -351,16 +401,10 @@ public class Game extends JPanel {
                 prop = SimplePropFactory.createProp("Freeze", locationX, locationY);
             }
         }
-        
+
         if (prop != null) {
             props.add(prop);
         }
     }
-
-    private boolean isEliteEnemy(AbstractAircraft enemyAircraft) {
-        return enemyAircraft instanceof EliteEnemy
-                || enemyAircraft instanceof ElitePlusEnemy
-                || enemyAircraft instanceof EliteProEnemy;
-    }
-
 }
+

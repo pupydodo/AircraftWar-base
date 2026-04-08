@@ -1,10 +1,6 @@
 package edu.hitsz.aircraft;
 
 import edu.hitsz.application.Main;
-import edu.hitsz.bullet.BaseBullet;
-
-import java.util.LinkedList;
-import java.util.List;
 
 /**
  * 普通敌机
@@ -24,11 +20,6 @@ public class MobEnemy extends AbstractAircraft {
         if (locationY >= Main.WINDOW_HEIGHT ) {
             vanish();
         }
-    }
-
-    @Override
-    public List<BaseBullet> shoot() {
-        return new LinkedList<>();
     }
 
 }

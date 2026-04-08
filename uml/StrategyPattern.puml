@@ -1,0 +1,50 @@
+@startuml
+title Strategy Pattern
+interface ShootStrategy {
+    + doShoot(aircraft: AbstractAircraft): List<BaseBullet>
+}
+class DirectShootStrategy {
+    + doShoot(aircraft: AbstractAircraft): List<BaseBullet>
+}
+class ScatterShootStrategy {
+    + doShoot(aircraft: AbstractAircraft): List<BaseBullet>
+}
+class RingShootStrategy {
+    + doShoot(aircraft: AbstractAircraft): List<BaseBullet>
+}
+DirectShootStrategy ..|> ShootStrategy
+ScatterShootStrategy ..|> ShootStrategy
+RingShootStrategy ..|> ShootStrategy
+abstract class AbstractAircraft {
+    # shootNum: int
+    # power: int
+    # direction: int
+    # shootStrategy: ShootStrategy
+    + setShootStrategy(strategy: ShootStrategy): void
+    + shoot(): List<BaseBullet>
+}
+AbstractAircraft o--> ShootStrategy : contains
+class HeroAircraft {
+    + HeroAircraft(...)
+}
+class BossEnemy {
+    + BossEnemy(...)
+}
+class EliteEnemy {
+    + EliteEnemy(...)
+}
+class ElitePlusEnemy {
+    + ElitePlusEnemy(...)
+}
+class EliteProEnemy {
+    + EliteProEnemy(...)
+}
+HeroAircraft --|> AbstractAircraft
+BossEnemy --|> AbstractAircraft
+EliteEnemy --|> AbstractAircraft
+ElitePlusEnemy --|> AbstractAircraft
+EliteProEnemy --|> AbstractAircraft
+note right of AbstractAircraft::shoot
+  return shootStrategy.doShoot(this);
+end note
+@enduml
