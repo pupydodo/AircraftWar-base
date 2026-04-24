@@ -1,6 +1,7 @@
 package edu.hitsz.application;
 
 import edu.hitsz.Props.AbstractProp;
+import edu.hitsz.Props.BombProp;
 import edu.hitsz.aircraft.*;
 import edu.hitsz.application.HeroController;
 import edu.hitsz.bullet.BaseBullet;
@@ -20,11 +21,6 @@ import edu.hitsz.aircraft.EliteEnemyFactory;
 import edu.hitsz.aircraft.ElitePlusEnemyFactory;
 import edu.hitsz.aircraft.EliteProEnemyFactory;
 import edu.hitsz.Props.SimplePropFactory;
-import edu.hitsz.dao.Record;
-import edu.hitsz.dao.RecordDao;
-import edu.hitsz.dao.RecordDaoImpl;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 /**
  * 游戏主面板，游戏启动
@@ -44,6 +40,9 @@ public class Game extends JPanel {
     private final List<BaseBullet> heroBullets;
     private final List<BaseBullet> enemyBullets;
     private final List<AbstractProp> props;
+
+    private final Difficulty difficulty;
+    private final SoundManager soundManager = SoundManager.getInstance();
 
     //屏幕中出现的敌机最大数量
     private final int enemyMaxNumber = 5;
@@ -73,16 +72,23 @@ public class Game extends JPanel {
 
     //游戏结束标志
     private boolean gameOverFlag = false;
+    private boolean leaderboardShown = false;
 
     private static final double ELITE_PROP_DROP_RATE = 0.3;
     private static final int HERO_COLLISION_DAMAGE = 40;
 
     public Game() {
+        this(Difficulty.NORMAL);
+    }
+
+    public Game(Difficulty difficulty) {
+        this.difficulty = difficulty == null ? Difficulty.NORMAL : difficulty;
 //        heroAircraft = new HeroAircraft(
 //                Main.WINDOW_WIDTH / 2,
 //                Main.WINDOW_HEIGHT - ImageManager.HERO_IMAGE.getHeight() ,
 //                0, 0, 100);
         heroAircraft = HeroAircraft.getInstance();
+        heroAircraft.reset();
 
         enemyAircrafts = new LinkedList<>();
         heroBullets = new LinkedList<>();
@@ -94,17 +100,21 @@ public class Game extends JPanel {
 
         this.timer = new Timer("game-action-timer", true);
 
+        soundManager.stopAll();
+
     }
 
     /**
      * 游戏启动入口，执行游戏逻辑
      */
     public void action() {
+        soundManager.playBackgroundLoop(difficulty);
 
         // 定时任务：绘制、对象产生、碰撞判定、及结束判定
         TimerTask task = new TimerTask() {
             @Override
             public void run() {
+                heroAircraft.tickBulletSupply();
 
                 enemySpawnCounter++;
                 if (enemySpawnCounter >=enemySpawnCycle) {
@@ -115,6 +125,8 @@ public class Game extends JPanel {
                             bossExists = true;
                             scoreThreshold += 500;
                             enemyAircrafts.add(bossFactory.createEnemy());
+                            soundManager.stopBackgroundLoop();
+                            soundManager.playBossLoop();
                         } else {
                             double rand_enemy = Math.random();
                             if (rand_enemy < 0.4) {
@@ -142,6 +154,8 @@ public class Game extends JPanel {
                 crashCheckAction();
                 // 后处理
                 postProcessAction();
+                // 同步 Boss 状态，避免碰撞等路径导致音乐未切回
+                syncBossStateAndMusic();
                 // 重绘界面
                 repaint();
                 // 游戏结束检查
@@ -233,6 +247,7 @@ public class Game extends JPanel {
                     // 敌机损失一定生命值
                     enemyAircraft.decreaseHp(bullet.getPower());
                     bullet.vanish();
+                    soundManager.playBulletHit();
                     if (enemyAircraft.notValid()) {
                         // TODO 获得分数，产生道具补给
                         score += 10;
@@ -254,6 +269,10 @@ public class Game extends JPanel {
             }
             if (prop.crash(heroAircraft) || heroAircraft.crash(prop)) {
                 prop.activate(heroAircraft);
+                soundManager.playSupplySound();
+                if (prop instanceof BombProp) {
+                    soundManager.playBombExplosion();
+                }
                 prop.vanish();
             }
         }
@@ -273,22 +292,40 @@ public class Game extends JPanel {
         props.removeIf(AbstractFlyingObject::notValid);
     }
 
+    private void syncBossStateAndMusic() {
+        if (!bossExists) {
+            return;
+        }
+        boolean hasAliveBoss = enemyAircrafts.stream().anyMatch(enemy -> enemy instanceof BossEnemy && !enemy.notValid());
+        if (!hasAliveBoss) {
+            bossExists = false;
+            soundManager.stopBossLoop();
+            if (!gameOverFlag) {
+                soundManager.playBackgroundLoop(difficulty);
+            }
+        }
+    }
+
     /**
      * 检查游戏是否结束，若结束：关闭线程池
      */
     private void checkResultAction(){
         // 游戏结束检查英雄机是否存活
-        if (heroAircraft.getHp() <= 0) {
+        if (!gameOverFlag && heroAircraft.getHp() <= 0) {
             timer.cancel(); // 取消定时器并终止所有调度任务
             gameOverFlag = true;
+            soundManager.stopAll();
+            soundManager.playGameOverSound();
             System.out.println("Game Over.");
-            // 记录得分并展示排行榜
-            RecordDao recordDao = new RecordDaoImpl("NORMAL");
-            SimpleDateFormat formatter = new SimpleDateFormat("MM-dd HH:mm");
-            String currentTime = formatter.format(new Date());
-            Record record = new Record("testUserName", score, currentTime);
-            recordDao.addRecord(record);
-            recordDao.printLeaderboard();
+            if (!leaderboardShown) {
+                leaderboardShown = true;
+                SwingUtilities.invokeLater(() -> {
+                    java.awt.Window window = SwingUtilities.getWindowAncestor(Game.this);
+                    JFrame owner = window instanceof JFrame ? (JFrame) window : null;
+                    LeaderboardDialog dialog = new LeaderboardDialog(owner, difficulty, score);
+                    dialog.setVisible(true);
+                });
+            }
         }
     }
 
@@ -304,8 +341,9 @@ public class Game extends JPanel {
         super.paint(g);
 
         // 绘制背景,图片滚动
-        g.drawImage(ImageManager.BACKGROUND_IMAGE, 0, this.backGroundTop - Main.WINDOW_HEIGHT, null);
-        g.drawImage(ImageManager.BACKGROUND_IMAGE, 0, this.backGroundTop, null);
+        BufferedImage background = ImageManager.getBackgroundImage(difficulty);
+        g.drawImage(background, 0, this.backGroundTop - Main.WINDOW_HEIGHT, null);
+        g.drawImage(background, 0, this.backGroundTop, null);
         this.backGroundTop += 1;
         if (this.backGroundTop == Main.WINDOW_HEIGHT) {
             this.backGroundTop = 0;
@@ -366,6 +404,10 @@ public class Game extends JPanel {
 
         if (enemyAircraft instanceof BossEnemy) {
             bossExists = false;
+            soundManager.stopBossLoop();
+            if (!gameOverFlag) {
+                soundManager.playBackgroundLoop(difficulty);
+            }
             for (int i = 0; i < 3; i++) {
                 double randPropType = Math.random();
                 AbstractProp prop;

@@ -11,8 +11,7 @@ public class BulletProp extends AbstractProp {
 
 	@Override
 	public void activate(HeroAircraft heroAircraft) {
-		heroAircraft.setShootStrategy(new ScatterShootStrategy());
-		heroAircraft.setShootNum(3);
+		heroAircraft.applyBulletSupply(new ScatterShootStrategy(), 3, HeroAircraft.BULLET_SUPPLY_DURATION_TICKS);
 		System.out.println("FireSupply active!");
 	}
 }

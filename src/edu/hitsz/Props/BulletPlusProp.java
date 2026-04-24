@@ -11,8 +11,7 @@ public class BulletPlusProp extends AbstractProp {
 
 	@Override
 	public void activate(HeroAircraft heroAircraft) {
-		heroAircraft.setShootStrategy(new RingShootStrategy());
-		heroAircraft.setShootNum(20);
+		heroAircraft.applyBulletSupply(new RingShootStrategy(), 20, HeroAircraft.BULLET_SUPPLY_DURATION_TICKS);
 		System.out.println("SuperFireSupply active!");
 	}
 
