@@ -114,7 +114,6 @@ public class Game extends JPanel {
         TimerTask task = new TimerTask() {
             @Override
             public void run() {
-                heroAircraft.tickBulletSupply();
 
                 enemySpawnCounter++;
                 if (enemySpawnCounter >=enemySpawnCycle) {

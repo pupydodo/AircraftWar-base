@@ -5,6 +5,8 @@ import edu.hitsz.application.Main;
 import edu.hitsz.strategy.DirectShootStrategy;
 import edu.hitsz.strategy.ShootStrategy;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 /**
  * 英雄飞机，游戏玩家操控
  * @author hitsz
@@ -12,6 +14,8 @@ import edu.hitsz.strategy.ShootStrategy;
 public class HeroAircraft extends AbstractAircraft {
 
     public static final int BULLET_SUPPLY_DURATION_TICKS = 300;
+    public static final int GAME_TICK_MILLIS = 40;
+    public static final long BULLET_SUPPLY_DURATION_MILLIS = (long) BULLET_SUPPLY_DURATION_TICKS * GAME_TICK_MILLIS;
     private static final int DEFAULT_SHOOT_NUM = 1;
     private static final int DEFAULT_POWER = 30;
 
@@ -20,7 +24,7 @@ public class HeroAircraft extends AbstractAircraft {
             0,0, 300);
 
     private final ShootStrategy directShootStrategy = new DirectShootStrategy();
-    private int bulletSupplyRemainTicks = 0;
+    private final AtomicInteger bulletSupplyVersion = new AtomicInteger(0);
 
     public HeroAircraft(int locationX, int locationY, int speedX, int speedY, int hp) {
         super(locationX, locationY, speedX, speedY, hp);
@@ -42,26 +46,19 @@ public class HeroAircraft extends AbstractAircraft {
         power = DEFAULT_POWER;
         direction = -1;
         shootStrategy = directShootStrategy;
-        bulletSupplyRemainTicks = 0;
+        bulletSupplyVersion.incrementAndGet();
     }
 
-    public void applyBulletSupply(ShootStrategy shootStrategy, int shootNum, int durationTicks) {
+    public synchronized int applyBulletSupply(ShootStrategy shootStrategy, int shootNum) {
         this.shootStrategy = shootStrategy;
         this.shootNum = shootNum;
-        this.bulletSupplyRemainTicks = Math.max(durationTicks, 0);
+        return bulletSupplyVersion.incrementAndGet();
     }
 
-    public void tickBulletSupply() {
-        if (bulletSupplyRemainTicks <= 0) {
+    public synchronized void recoverDirectShoot(int expectedVersion) {
+        if (bulletSupplyVersion.get() != expectedVersion) {
             return;
         }
-        bulletSupplyRemainTicks--;
-        if (bulletSupplyRemainTicks == 0) {
-            recoverDirectShoot();
-        }
-    }
-
-    public void recoverDirectShoot() {
         shootStrategy = directShootStrategy;
         shootNum = DEFAULT_SHOOT_NUM;
     }
