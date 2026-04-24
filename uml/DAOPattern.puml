@@ -1,0 +1,38 @@
+@startuml
+interface RecordDao {
+    + addRecord(record: Record): void
+    + getAllRecords(): List<Record>
+    + printLeaderboard(): void
+}
+
+class RecordDaoImpl {
+    - records: List<Record>
+    - fileName: String
+    + RecordDaoImpl(difficulty: String)
+    - loadRecords(): void
+    - saveRecords(): void
+    + addRecord(record: Record): void
+    + getAllRecords(): List<Record>
+    + printLeaderboard(): void
+}
+
+class Record {
+    - userName: String
+    - score: int
+    - time: String
+    + Record(userName: String, score: int, time: String)
+    + getUserName(): String
+    + setUserName(userName: String): void
+    + getScore(): int
+    + setScore(score: int): void
+    + getTime(): String
+    + setTime(time: String): void
+}
+
+RecordDao <|.. RecordDaoImpl
+RecordDaoImpl --> "0..*" Record : manages >
+
+class Game {
+}
+Game ..> RecordDaoImpl
+@enduml

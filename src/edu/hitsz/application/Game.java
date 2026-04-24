@@ -20,6 +20,11 @@ import edu.hitsz.aircraft.EliteEnemyFactory;
 import edu.hitsz.aircraft.ElitePlusEnemyFactory;
 import edu.hitsz.aircraft.EliteProEnemyFactory;
 import edu.hitsz.Props.SimplePropFactory;
+import edu.hitsz.dao.Record;
+import edu.hitsz.dao.RecordDao;
+import edu.hitsz.dao.RecordDaoImpl;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * 游戏主面板，游戏启动
@@ -276,7 +281,14 @@ public class Game extends JPanel {
         if (heroAircraft.getHp() <= 0) {
             timer.cancel(); // 取消定时器并终止所有调度任务
             gameOverFlag = true;
-            System.out.println("Game Over!");
+            System.out.println("Game Over.");
+            // 记录得分并展示排行榜
+            RecordDao recordDao = new RecordDaoImpl("NORMAL");
+            SimpleDateFormat formatter = new SimpleDateFormat("MM-dd HH:mm");
+            String currentTime = formatter.format(new Date());
+            Record record = new Record("testUserName", score, currentTime);
+            recordDao.addRecord(record);
+            recordDao.printLeaderboard();
         }
     }
 
