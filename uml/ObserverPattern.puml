@@ -1,0 +1,54 @@
+@startuml
+interface Observer {
+    + update(propType: String): void
+}
+
+interface Subject {
+    + addObserver(observer: Observer): void
+    + removeObserver(observer: Observer): void
+    + notifyObservers(): void
+}
+
+abstract class AbstractProp {
+    + activate(heroAircraft: HeroAircraft): void
+}
+
+class BombProp {
+    - observers: List<Observer>
+    + BombProp(locationX: int, locationY: int, speedX: int, speedY: int)
+    + activate(heroAircraft: HeroAircraft): void
+    + addObserver(observer: Observer): void
+    + removeObserver(observer: Observer): void
+    + notifyObservers(): void
+}
+
+class FreezeProp {
+    - observers: List<Observer>
+    + FreezeProp(locationX: int, locationY: int, speedX: int, speedY: int)
+    + activate(heroAircraft: HeroAircraft): void
+    + addObserver(observer: Observer): void
+    + removeObserver(observer: Observer): void
+    + notifyObservers(): void
+}
+
+abstract class AbstractAircraft {
+    + update(propType: String): void
+}
+
+abstract class BaseBullet {
+    + update(propType: String): void
+}
+
+
+Subject <|.. BombProp
+Subject <|.. FreezeProp
+AbstractProp <|-- BombProp
+AbstractProp <|-- FreezeProp
+
+Observer <|.. AbstractAircraft
+Observer <|.. BaseBullet
+
+Subject o--> Observer
+
+@enduml
+

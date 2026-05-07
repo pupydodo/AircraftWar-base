@@ -25,4 +25,13 @@ public class ElitePlusEnemy extends  AbstractAircraft{
             vanish();
         }
     }
+
+    @Override
+    public void update(String propType) {
+        super.update(propType);
+        if ("Freeze".equals(propType)) {
+            // 精锐敌机：静止 3s 后恢复
+            temporaryFreeze(3);
+        }
+    }
 }

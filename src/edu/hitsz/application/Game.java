@@ -26,7 +26,7 @@ import edu.hitsz.Props.SimplePropFactory;
  * 游戏主面板，游戏启动
  * @author hitsz
  */
-public class Game extends JPanel {
+public abstract class Game extends JPanel {
 
     private int backGroundTop = 0;
 
@@ -51,7 +51,7 @@ public class Game extends JPanel {
     private final EnemyFactory eliteFactory = new EliteEnemyFactory();
     private final EnemyFactory elitePlusFactory = new ElitePlusEnemyFactory();
     private final EnemyFactory eliteProFactory = new EliteProEnemyFactory();
-    private final EnemyFactory bossFactory = new BossEnemyFactory();
+    protected final EnemyFactory bossFactory = new BossEnemyFactory();
 
     //敌机生成周期
     protected double enemySpawnCycle = 20;
@@ -77,9 +77,12 @@ public class Game extends JPanel {
     private static final double ELITE_PROP_DROP_RATE = 0.3;
     private static final int HERO_COLLISION_DAMAGE = 40;
 
-    public Game() {
-        this(Difficulty.NORMAL);
-    }
+    // Timer counter for difficulty progression
+    protected int gameTime = 0;
+
+    //难度提升增益
+    protected int enemyHpBoost = 0;
+    protected int enemySpeedYBoost = 0;
 
     public Game(Difficulty difficulty) {
         this.difficulty = difficulty == null ? Difficulty.NORMAL : difficulty;
@@ -115,27 +118,38 @@ public class Game extends JPanel {
             @Override
             public void run() {
 
+                gameTime += timeInterval;
+                updateDifficultyOverTime();
+
                 enemySpawnCounter++;
                 if (enemySpawnCounter >=enemySpawnCycle) {
                     enemySpawnCounter = 0;
                     // 产生敌机
                     if (enemyAircrafts.size() < enemyMaxNumber) {
-                        if (score >= scoreThreshold + 500 && !bossExists) {
+                        if (allowBoss() && score >= scoreThreshold + 500 && !bossExists) {
                             bossExists = true;
                             scoreThreshold += 500;
-                            enemyAircrafts.add(bossFactory.createEnemy());
+                            AbstractAircraft boss = bossFactory.createEnemy();
+                            boss.setHp(getBossHp());
+                            enemyAircrafts.add(boss);
                             soundManager.stopBackgroundLoop();
                             soundManager.playBossLoop();
                         } else {
+                            AbstractAircraft enemy = null;
                             double rand_enemy = Math.random();
                             if (rand_enemy < 0.4) {
-                                enemyAircrafts.add(mobFactory.createEnemy());
+                                enemy = mobFactory.createEnemy();
                             } else if (rand_enemy < 0.7) {
-                                enemyAircrafts.add(eliteFactory.createEnemy());
+                                enemy = eliteFactory.createEnemy();
                             } else if (rand_enemy < 0.9) {
-                                enemyAircrafts.add(elitePlusFactory.createEnemy());
+                                enemy = elitePlusFactory.createEnemy();
                             } else {
-                                enemyAircrafts.add(eliteProFactory.createEnemy());
+                                enemy = eliteProFactory.createEnemy();
+                            }
+                            if (enemy != null) {
+                                enemy.setHp(enemy.getHp() + enemyHpBoost);
+                                enemy.setSpeedY(enemy.getSpeedY() + enemySpeedYBoost);
+                                enemyAircrafts.add(enemy);
                             }
                         }
                     }
@@ -267,11 +281,36 @@ public class Game extends JPanel {
                 continue;
             }
             if (prop.crash(heroAircraft) || heroAircraft.crash(prop)) {
+                if (prop instanceof edu.hitsz.observer.Subject subjectProp) {
+                    for (AbstractAircraft enemyAircraft : enemyAircrafts) {
+                        if (!enemyAircraft.notValid()) {
+                            subjectProp.addObserver(enemyAircraft);
+                        }
+                    }
+                    for (BaseBullet enemyBullet : enemyBullets) {
+                        if (!enemyBullet.notValid()) {
+                            subjectProp.addObserver(enemyBullet);
+                        }
+                    }
+                }
+
+                int priorEnemyCount = 0;
+                if (prop instanceof BombProp) {
+                    for (AbstractAircraft enemy : enemyAircrafts) {
+                        if (!enemy.notValid() && !(enemy instanceof BossEnemy)) {
+                            priorEnemyCount++;
+                        }
+                    }
+                }
+
                 prop.activate(heroAircraft);
                 soundManager.playSupplySound();
+
                 if (prop instanceof BombProp) {
                     soundManager.playBombExplosion();
+                    score += 10 * priorEnemyCount;
                 }
+
                 prop.vanish();
             }
         }
@@ -327,6 +366,11 @@ public class Game extends JPanel {
             }
         }
     }
+
+    // Template methods
+    protected abstract boolean allowBoss();
+    protected abstract int getBossHp();
+    protected abstract void updateDifficultyOverTime();
 
     //***********************
     //      Paint 各部分

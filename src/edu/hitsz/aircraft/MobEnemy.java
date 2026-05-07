@@ -22,4 +22,14 @@ public class MobEnemy extends AbstractAircraft {
         }
     }
 
+    @Override
+    public void update(String propType) {
+        super.update(propType);
+        if ("Freeze".equals(propType)) {
+            // 普通敌机：永久静止
+            this.speedX = 0;
+            this.speedY = 0;
+        }
+    }
+
 }

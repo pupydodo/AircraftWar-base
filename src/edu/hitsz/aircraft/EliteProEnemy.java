@@ -25,4 +25,15 @@ public class EliteProEnemy extends AbstractAircraft{
             vanish();
         }
     }
+
+    @Override
+    public void update(String propType) {
+        if ("Bomb".equals(propType)) {
+            // 王牌敌机：掉血(扣30)
+            this.decreaseHp(30);
+        } else if ("Freeze".equals(propType)) {
+            // 王牌敌机：减速 5s 后恢复
+            temporarySlowDown(5, 0.5);
+        }
+    }
 }

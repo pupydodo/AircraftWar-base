@@ -21,4 +21,9 @@ public class BossEnemy extends AbstractAircraft {
         }
     }
 
+    @Override
+    public void update(String propType) {
+        // Boss敌机：不受影响
+    }
+
 }

@@ -1,0 +1,44 @@
+@startuml
+abstract class Game {
+    # enemySpawnCycle: double
+    # enemy_shoot_Cycle: double
+    # shootCycle: double
+    # gameTime: int
+    + Game(difficulty: Difficulty)
+    + action(): void
+    # {abstract} allowBoss(): boolean
+    # {abstract} getBossHp(): int
+    # {abstract} updateDifficultyOverTime(): void
+}
+
+class EasyGame {
+    + EasyGame()
+    # allowBoss(): boolean
+    # getBossHp(): int
+    # updateDifficultyOverTime(): void
+}
+
+class NormalGame {
+    - bossHp: int
+    - timeThreshold: int
+    + NormalGame()
+    # allowBoss(): boolean
+    # getBossHp(): int
+    # updateDifficultyOverTime(): void
+}
+
+class HardGame {
+    - bossHp: int
+    - timeThreshold: int
+    + HardGame()
+    # allowBoss(): boolean
+    # getBossHp(): int
+    # updateDifficultyOverTime(): void
+}
+
+Game <|-- EasyGame
+Game <|-- NormalGame
+Game <|-- HardGame
+
+@enduml
+

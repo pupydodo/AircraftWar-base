@@ -2,12 +2,14 @@ package edu.hitsz.bullet;
 
 import edu.hitsz.application.Main;
 import edu.hitsz.basic.AbstractFlyingObject;
+import edu.hitsz.observer.Observer;
+// ...existing code... (removed unused import)
 
 /**
  * 子弹基类
  * @author hitsz
  */
-public abstract class BaseBullet extends AbstractFlyingObject {
+public abstract class BaseBullet extends AbstractFlyingObject implements Observer {
 
     private int power = 0;
 
@@ -37,5 +39,31 @@ public abstract class BaseBullet extends AbstractFlyingObject {
 
     public int getPower() {
         return power;
+    }
+
+    @Override
+    public void update(String propType) {
+        if ("Bomb".equals(propType)) {
+            // Bomb will only affect enemy bullets but to make it safe:
+            if (this instanceof EnemyBullet) {
+                this.vanish();
+            }
+        } else if ("Freeze".equals(propType)) {
+            if (this instanceof EnemyBullet) {
+                int originalSpeedX = this.speedX;
+                int originalSpeedY = this.speedY;
+                this.speedX = 0;
+                this.speedY = 0;
+                
+                java.util.concurrent.ScheduledExecutorService executor = java.util.concurrent.Executors.newSingleThreadScheduledExecutor();
+                // 按实验要求，敌机子弹被冰冻时静止 5s 后恢复
+                long freezeSeconds = 5L;
+                executor.schedule(() -> {
+                    this.speedX = originalSpeedX;
+                    this.speedY = originalSpeedY;
+                    executor.shutdown();
+                }, freezeSeconds, java.util.concurrent.TimeUnit.SECONDS);
+            }
+        }
     }
 }
